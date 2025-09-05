@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayrollPro - Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Login/Signup Screen -->
+    <div id="authScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 fade-in">
+            <div class="text-center mb-8">
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-white text-2xl font-bold">💼</span>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800">PayrollPro</h1>
+                <p class="text-gray-600 mt-2">Manage payroll with ease</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="flex bg-gray-100 rounded-lg p-1">
+                    <button id="loginTab" class="flex-1 py-2 px-4 rounded-md bg-white shadow-sm text-blue-600 font-medium transition-all">Login</button>
+                    <button id="signupTab" class="flex-1 py-2 px-4 rounded-md text-gray-600 font-medium transition-all">Sign Up</button>
+                </div>
+
+                <form id="authForm" class="space-y-4">
+                    <div id="signupFields" class="hidden space-y-4">
+                        <input type="text" id="fullName" placeholder="Full Name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="text" id="employeeId" placeholder="Employee ID" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    
+                    <input type="email" id="email" placeholder="Email Address" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    <input type="password" id="password" placeholder="Password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    
+                    <div class="flex items-center space-x-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="role" value="employee" checked class="text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-gray-700">Employee</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="role" value="admin" class="text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-gray-700">Admin</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105">
+                        <span id="authButtonText">Login</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="hidden min-h-screen">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-lg border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 w-10 h-10 rounded-lg flex items-center justify-center">
+                            <span class="text-white text-lg font-bold">💼</span>
+                        </div>
+                        <h1 class="text-xl font-bold text-gray-800">PayrollPro</h1>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="userWelcome" class="text-gray-600"></span>
+                        <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sidebar -->
+        <div class="flex">
+            <aside class="w-64 bg-white shadow-lg h-screen sticky top-0 slide-in">
+                <nav class="mt-8">
+                    <div class="px-4 space-y-2">
+                        <button class="nav-item w-full flex items-center px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors" data-section="dashboard">
+                            <span class="mr-3">📊</span> Dashboard
+                        </button>
+                        <button id="salarySlipsNav" class="nav-item w-full flex items-center px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors" data-section="salary-slips">
+                            <span class="mr-3">💰</span> Salary Slips
+                        </button>
+                        <button class="nav-item w-full flex items-center px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors" data-section="expenses">
+                            <span class="mr-3">📝</span> Expenses
+                        </button>
+                        <button id="employeesNav" class="nav-item hidden w-full flex items-center px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors" data-section="employees">
+                            <span class="mr-3">👥</span> Employees
+                        </button>
+                    </div>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-8">
+                <!-- Dashboard Section -->
+                <div id="dashboard" class="section fade-in">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard</h2>
+                        <p class="text-gray-600">Overview of your payroll data</p>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Total Salary</p>
+                                    <p id="totalSalary" class="text-2xl font-bold text-gray-800">$0</p>
+                                </div>
+                                <div class="bg-blue-100 p-3 rounded-full">
+                                    <span class="text-blue-600 text-xl">💰</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Total Expenses</p>
+                                    <p id="totalExpenses" class="text-2xl font-bold text-gray-800">$0</p>
+                                </div>
+                                <div class="bg-green-100 p-3 rounded-full">
+                                    <span class="text-green-600 text-xl">📊</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Employees</p>
+                                    <p id="totalEmployees" class="text-2xl font-bold text-gray-800">0</p>
+                                </div>
+                                <div class="bg-purple-100 p-3 rounded-full">
+                                    <span class="text-purple-600 text-xl">👥</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">This Month</p>
+                                    <p id="thisMonth" class="text-2xl font-bold text-gray-800">$0</p>
+                                </div>
+                                <div class="bg-orange-100 p-3 rounded-full">
+                                    <span class="text-orange-600 text-xl">📅</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Salary Trends</h3>
+                            <canvas id="salaryChart" width="400" height="200"></canvas>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Expense Breakdown</h3>
+                            <canvas id="expenseChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Salary Slips Section -->
+                <div id="salary-slips" class="section hidden fade-in">
+                    <div class="mb-8 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2">Salary Slips</h2>
+                            <p class="text-gray-600">Manage employee salary slips</p>
+                        </div>
+                        <button id="generateSlipBtn" class="hidden bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all">
+                            Generate New Slip
+                        </button>
+                    </div>
+
+                    <!-- Salary Slips List -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Month</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Basic Salary</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Allowances</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deductions</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Net Salary</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="salarySlipsTable" class="bg-white divide-y divide-gray-200">
+                                    <!-- Salary slips will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Expenses Section -->
+                <div id="expenses" class="section hidden fade-in">
+                    <div class="mb-8 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2">Expenses</h2>
+                            <p class="text-gray-600">Track and manage expenses</p>
+                        </div>
+                        <button id="addExpenseBtn" class="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all">
+                            Add Expense
+                        </button>
+                    </div>
+
+                    <!-- Expenses List -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="expensesTable" class="bg-white divide-y divide-gray-200">
+                                    <!-- Expenses will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Employees Section (Admin Only) -->
+                <div id="employees" class="section hidden fade-in">
+                    <div class="mb-8">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-2">Employees</h2>
+                        <p class="text-gray-600">Manage employee information</p>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee ID</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                        <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="employeesTable" class="bg-white divide-y divide-gray-200">
+                                    <!-- Employees will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Salary Slip Modal -->
+    <div id="salarySlipModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">Generate Salary Slip</h3>
+                <button id="closeSalaryModal" class="text-gray-400 hover:text-gray-600">
+                    <span class="text-2xl">&times;</span>
+                </button>
+            </div>
+            <form id="salarySlipForm" class="space-y-4">
+                <select id="slipEmployee" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    <option value="">Select Employee</option>
+                </select>
+                <input type="month" id="slipMonth" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                <input type="number" id="basicSalary" placeholder="Basic Salary" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                <input type="number" id="allowances" placeholder="Allowances" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <input type="number" id="deductions" placeholder="Deductions" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all">
+                    Generate Slip
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Expense Modal -->
+    <div id="expenseModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 fade-in">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-800">Add Expense</h3>
+                <button id="closeExpenseModal" class="text-gray-400 hover:text-gray-600">
+                    <span class="text-2xl">&times;</span>
+                </button>
+            </div>
+            <form id="expenseForm" class="space-y-4">
+                <input type="date" id="expenseDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                <select id="expenseCategory" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                    <option value="">Select Category</option>
+                    <option value="Travel">Travel</option>
+                    <option value="Food">Food</option>
+                    <option value="Office Supplies">Office Supplies</option>
+                    <option value="Training">Training</option>
+                    <option value="Other">Other</option>
+                </select>
+                <textarea id="expenseDescription" placeholder="Description" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" required></textarea>
+                <input type="number" id="expenseAmount" placeholder="Amount" step="0.01" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all">
+                    Add Expense
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        let currentUser = null;
+        
+        // Initialize sample data if not exists
+        function initializeData() {
+            // Users
+            if (!localStorage.getItem('payrollUsers')) {
+                const sampleUsers = [
+                    { 
+                        id: 1, 
+                        name: 'Admin User', 
+                        email: 'admin@payrollpro.com', 
+                        employeeId: 'ADM001', 
+                        password: 'admin123', 
+                        role: 'admin', 
+                        status: 'active' 
+                    },
+                    { 
+                        id: 2, 
+                        name: 'John Doe', 
+                        email: 'john@payrollpro.com', 
+                        employeeId: 'EMP001', 
+                        password: 'employee123', 
+                        role: 'employee', 
+                        status: 'active' 
+                    },
+                    { 
+                        id: 3, 
+                        name: 'Jane Smith', 
+                        email: 'jane@payrollpro.com', 
+                        employeeId: 'EMP002', 
+                        password: 'employee123', 
+                        role: 'employee', 
+                        status: 'active' 
+                    }
+                ];
+                localStorage.setItem('payrollUsers', JSON.stringify(sampleUsers));
+            }
+            
+            // Salary Slips
+            if (!localStorage.getItem('salarySlips')) {
+                const sampleSlips = [
+                    {
+                        id: 1,
+                        employeeId: 'EMP001',
+                        employeeName: 'John Doe',
+                        month: '2023-11-01',
+                        basicSalary: 5000,
+                        allowances: 500,
+                        deductions: 300,
+                        netSalary: 5200
+                    },
+                    {
+                        id: 2,
+                        employeeId: 'EMP002',
+                        employeeName: 'Jane Smith',
+                        month: '2023-11-01',
+                        basicSalary: 5500,
+                        allowances: 600,
+                        deductions: 400,
+                        netSalary: 5700
+                    }
+                ];
+                localStorage.setItem('salarySlips', JSON.stringify(sampleSlips));
+            }
+            
+            // Expenses
+            if (!localStorage.getItem('expenses')) {
+                const sampleExpenses = [
+                    {
+                        id: 1,
+                        employeeId: 'EMP001',
+                        date: '2023-11-15',
+                        category: 'Travel',
+                        description: 'Client meeting travel expenses',
+                        amount: 120,
+                        status: 'approved'
+                    },
+                    {
+                        id: 2,
+                        employeeId: 'EMP002',
+                        date: '2023-11-10',
+                        category: 'Office Supplies',
+                        description: 'New monitor for workstation',
+                        amount: 250,
+                        status: 'pending'
+                    }
+                ];
+                localStorage.setItem('expenses', JSON.stringify(sampleExpenses));
+            }
+        }
+        
+        // Call initialization
+        initializeData();
+        
+        // Get data from localStorage
+        let users = JSON.parse(localStorage.getItem('payrollUsers') || '[]');
+        let salarySlips = JSON.parse(localStorage.getItem('salarySlips') || '[]');
+        let expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+        
+        // Tab switching
+        document.getElementById('loginTab').addEventListener('click', () => {
+            document.getElementById('loginTab').classList.add('bg-white', 'shadow-sm', 'text-blue-600');
+            document.getElementById('signupTab').classList.remove('bg-white', 'shadow-sm', 'text-blue-600');
+            document.getElementById('signupTab').classList.add('text-gray-600');
+            document.getElementById('signupFields').classList.add('hidden');
+            document.getElementById('authButtonText').textContent = 'Login';
+        });
+        
+        document.getElementById('signupTab').addEventListener('click', () => {
+            document.getElementById('signupTab').classList.add('bg-white', 'shadow-sm', 'text-blue-600');
+            document.getElementById('loginTab').classList.remove('bg-white', 'shadow-sm', 'text-blue-600');
+            document.getElementById('loginTab').classList.add('text-gray-600');
+            document.getElementById('signupFields').classList.remove('hidden');
+            document.getElementById('authButtonText').textContent = 'Sign Up';
+        });
+
+        // Authentication
+        document.getElementById('authForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = document.querySelector('input[name="role"]:checked').value;
+            const isSignup = !document.getElementById('signupFields').classList.contains('hidden');
+            
+            if (isSignup) {
+                // Sign up
+                const fullName = document.getElementById('fullName').value;
+                const employeeId = document.getElementById('employeeId').value;
+                
+                // Check if email or employee ID already exists
+                if (users.find(user => user.email === email)) {
+                    alert('Email already exists');
+                    return;
+                }
+                
+                if (users.find(user => user.employeeId === employeeId)) {
+                    alert('Employee ID already exists');
+                    return;
+                }
+                
+                // Create new user
+                const newUser = {
+                    id: users.length + 1,
+                    name: fullName,
+                    email,
+                    employeeId,
+                    password,
+                    role,
+                    status: 'active'
+                };
+                
+                users.push(newUser);
+                localStorage.setItem('payrollUsers', JSON.stringify(users));
+                
+                currentUser = newUser;
+                showMainApp();
+            } else {
+                // Login
+                const user = users.find(u => u.email === email && u.password === password);
+                
+                if (user) {
+                    currentUser = user;
+                    showMainApp();
+                } else {
+                    alert('Invalid email or password');
+                }
+            }
+        });
+
+        // Show Main Application
+        function showMainApp() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            document.getElementById('userWelcome').textContent = `Welcome, ${currentUser.name}`;
+            
+            // Show/hide admin features
+            if (currentUser.role === 'admin') {
+                document.getElementById('generateSlipBtn').classList.remove('hidden');
+                document.getElementById('employeesNav').classList.remove('hidden');
+                document.getElementById('salarySlipsNav').textContent = '💰 Manage Salary Slips';
+            } else {
+                document.getElementById('salarySlipsNav').textContent = '💰 My Salary Slips';
+            }
+
+            loadDashboard();
+            populateEmployeeDropdown();
+        }
+
+        // Load dashboard data
+        function loadDashboard() {
+            // Update stats
+            const totalSalary = salarySlips.reduce((sum, slip) => sum + slip.netSalary, 0);
+            const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const totalEmployees = users.filter(user => user.role === 'employee').length;
+            
+            // This month's salary (simplified)
+            const thisMonthSalary = salarySlips.reduce((sum, slip) => {
+                const slipDate = new Date(slip.month);
+                const now = new Date();
+                if (slipDate.getMonth() === now.getMonth() && slipDate.getFullYear() === now.getFullYear()) {
+                    return sum + slip.netSalary;
+                }
+                return sum;
+            }, 0);
+            
+            document.getElementById('totalSalary').textContent = `$${totalSalary.toLocaleString()}`;
+            document.getElementById('totalExpenses').textContent = `$${totalExpenses.toLocaleString()}`;
+            document.getElementById('totalEmployees').textContent = totalEmployees;
+            document.getElementById('thisMonth').textContent = `$${thisMonthSalary.toLocaleString()}`;
+            
+            // Initialize charts
+            initCharts();
+        }
+        
+        // Initialize charts
+        function initCharts() {
+            // Salary Trends Chart
+            const salaryCtx = document.getElementById('salaryChart').getContext('2d');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const salaryData = months.map((month, index) => {
+                return salarySlips.reduce((sum, slip) => {
+                    const slipDate = new Date(slip.month);
+                    if (slipDate.getMonth() === index) {
+                        return sum + slip.netSalary;
+                    }
+                    return sum;
+                }, 0);
+            });
+            
+            new Chart(salaryCtx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Monthly Salary',
+                        data: salaryData,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+            
+            // Expense Breakdown Chart
+            const expenseCtx = document.getElementById('expenseChart').getContext('2d');
+            const categories = ['Travel', 'Food', 'Office Supplies', 'Training', 'Other'];
+            const expenseData = categories.map(category => {
+                return expenses.reduce((sum, exp) => {
+                    if (exp.category === category) {
+                        return sum + exp.amount;
+                    }
+                    return sum;
+                }, 0);
+            });
+            
+            new Chart(expenseCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        data: expenseData,
+                        backgroundColor: [
+                            'rgb(59, 130, 246)',
+                            'rgb(16, 185, 129)',
+                            'rgb(245, 158, 11)',
+                            'rgb(139, 92, 246)',
+                            'rgb(156, 163, 175)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load salary slips
+        function loadSalarySlips() {
+            const tbody = document.getElementById('salarySlipsTable');
+            const userSlips = currentUser.role === 'admin'
+                ? salarySlips
+                : salarySlips.filter(slip => slip.employeeId === currentUser.employeeId);
+            
+            tbody.innerHTML = userSlips.map(slip => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${slip.employeeName}</div>
+                        <div class="text-sm text-gray-500">${slip.employeeId}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(slip.month).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${slip.basicSalary.toLocaleString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${slip.allowances.toLocaleString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${slip.deductions.toLocaleString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">$${slip.netSalary.toLocaleString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button onclick="downloadSlip(${slip.id})" class="text-blue-600 hover:text-blue-900">Download</button>
+                        ${currentUser.role === 'admin' ? `<button onclick="editSlip(${slip.id})" class="ml-2 text-indigo-600 hover:text-indigo-900">Edit</button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Load expenses
+        function loadExpenses() {
+            const tbody = document.getElementById('expensesTable');
+            const userExpenses = currentUser.role === 'admin'
+                ? expenses
+                : expenses.filter(exp => exp.employeeId === currentUser.employeeId);
+            
+            tbody.innerHTML = userExpenses.map(expense => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${new Date(expense.date).toLocaleDateString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${expense.category}</td>
+                    <td class="px-6 py-4 text-sm text-gray-900">${expense.description}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$${expense.amount.toLocaleString()}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${expense.status === 'approved' ? 'bg-green-100 text-green-800' : expense.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">
+                            ${expense.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${currentUser.role === 'admin' && expense.status === 'pending' ? `
+                            <button onclick="approveExpense(${expense.id})" class="text-green-600 hover:text-green-900 mr-2">Approve</button>
+                            <button onclick="rejectExpense(${expense.id})" class="text-red-600 hover:text-red-900">Reject</button>
+                        ` : ''}
+                        ${expense.employeeId === currentUser.employeeId ? `<button onclick="deleteExpense(${expense.id})" class="text-red-600 hover:text-red-900">Delete</button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Load employees
+        function loadEmployees() {
+            
+            const tbody = document.getElementById('employeesTable');
+            
+            tbody.innerHTML = users.map(employee => `
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${employee.employeeId}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${employee.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${employee.email}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${employee.role}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                            ${employee.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+                // Populate employee dropdown
+        function populateEmployeeDropdown() {
+            const select = document.getElementById('slipEmployee');
+            select.innerHTML = '<option value="">Select Employee</option>' + 
+                users.filter(user => user.role === 'employee')
+                    .map(emp => `<option value="${emp.employeeId}">${emp.name} (${emp.employeeId})</option>`)
+                    .join('');
+        }
+
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const section = item.dataset.section;
+                showSection(section);
+                
+                // Update active nav item
+                document.querySelectorAll('.nav-item').forEach(nav => {
+                    nav.classList.remove('bg-blue-50', 'text-blue-600');
+                    nav.classList.add('text-gray-700');
+                });
+                item.classList.add('bg-blue-50', 'text-blue-600');
+                item.classList.remove('text-gray-700');
+            });
+        });
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionName).classList.remove('hidden');
+
+            if (sectionName === 'dashboard') loadDashboard();
+            else if (sectionName === 'salary-slips') loadSalarySlips();
+            else if (sectionName === 'expenses') loadExpenses();
+            else if (sectionName === 'employees') loadEmployees();
+        }
+
+        function downloadSlip(slipId) {
+            const slip = salarySlips.find(s => s.id === slipId);
+            alert(`Downloading salary slip for ${slip.employeeName} - ${slip.month}`);
+            
+            // In a real application, this would generate a PDF
+            const slipContent = `
+                PAYROLL PRO - SALARY SLIP
+                =========================
+                
+                Employee: ${slip.employeeName} (${slip.employeeId})
+                Period: ${new Date(slip.month).toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+                
+                Basic Salary: $${slip.basicSalary.toLocaleString()}
+                Allowances: $${slip.allowances.toLocaleString()}
+                Deductions: $${slip.deductions.toLocaleString()}
+                -------------------------
+                NET SALARY: $${slip.netSalary.toLocaleString()}
+            `;
+            
+            // Create a blob and download link
+            const blob = new Blob([slipContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `salary-slip-${slip.employeeId}-${slip.month}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function editSlip(slipId) {
+            const slip = salarySlips.find(s => s.id === slipId);
+            if (slip) {
+                document.getElementById('slipEmployee').value = slip.employeeId;
+                document.getElementById('slipMonth').value = slip.month;
+                document.getElementById('basicSalary').value = slip.basicSalary;
+                document.getElementById('allowances').value = slip.allowances;
+                document.getElementById('deductions').value = slip.deductions;
+                
+                document.getElementById('salarySlipModal').classList.remove('hidden');
+                
+                // Store the current slip ID for updating
+                document.getElementById('salarySlipForm').dataset.editing = slipId;
+            }
+        }
+
+        // Approve, Reject, and Delete expense
+        function approveExpense(expenseId) {
+            const expense = expenses.find(e => e.id === expenseId);
+            if (expense) {
+                expense.status = 'approved';
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                loadExpenses();
+            }
+        }
+
+        function rejectExpense(expenseId) {
+            const expense = expenses.find(e => e.id === expenseId);
+            if (expense) {
+                expense.status = 'rejected';
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                loadExpenses();
+            }
+        }
+
+        function deleteExpense(expenseId) {
+            if (confirm('Are you sure you want to delete this expense?')) {
+                expenses = expenses.filter(e => e.id !== expenseId);
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                loadExpenses();
+            }
+        }
+
+        // Salary Slip Form Submission
+        document.getElementById('salarySlipForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const employeeId = document.getElementById('slipEmployee').value;
+            const month = document.getElementById('slipMonth').value;
+            const basicSalary = parseFloat(document.getElementById('basicSalary').value);
+            const allowances = parseFloat(document.getElementById('allowances').value) || 0;
+            const deductions = parseFloat(document.getElementById('deductions').value) || 0;
+            const netSalary = basicSalary + allowances - deductions;
+            
+            const employee = users.find(u => u.employeeId === employeeId);
+            
+            // Check if we're editing an existing slip
+            const editingId = document.getElementById('salarySlipForm').dataset.editing;
+            
+            if (editingId) {
+                // Update existing slip
+                const slipIndex = salarySlips.findIndex(s => s.id === parseInt(editingId));
+                if (slipIndex !== -1) {
+                    salarySlips[slipIndex] = {
+                        ...salarySlips[slipIndex],
+                        employeeId,
+                        month,
+                        basicSalary,
+                        allowances,
+                        deductions,
+                        netSalary
+                    };
+                }
+                // Remove the editing flag
+                delete document.getElementById('salarySlipForm').dataset.editing;
+            } else {
+                // Create new slip
+                const newSlip = {
+                    id: salarySlips.length > 0 ? Math.max(...salarySlips.map(s => s.id)) + 1 : 1,
+                    employeeId,
+                    employeeName: employee ? employee.name : 'Unknown',
+                    month,
+                    basicSalary,
+                    allowances,
+                    deductions,
+                    netSalary
+                };
+                
+                salarySlips.push(newSlip);
+            }
+            
+            localStorage.setItem('salarySlips', JSON.stringify(salarySlips));
+            
+            document.getElementById('salarySlipModal').classList.add('hidden');
+            document.getElementById('salarySlipForm').reset();
+            loadSalarySlips();
+        });
+
+        // Expense Form Submission
+        document.getElementById('expenseForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const date = document.getElementById('expenseDate').value;
+            const category = document.getElementById('expenseCategory').value;
+            const description = document.getElementById('expenseDescription').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            
+            const newExpense = {
+                id: expenses.length > 0 ? Math.max(...expenses.map(e => e.id)) + 1 : 1,
+                employeeId: currentUser.employeeId,
+                date,
+                category,
+                description,
+                amount,
+                status: currentUser.role === 'admin' ? 'approved' : 'pending'
+            };
+            
+            expenses.push(newExpense);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            
+            document.getElementById('expenseModal').classList.add('hidden');
+            document.getElementById('expenseForm').reset();
+            loadExpenses();
+        });
+
+        // Modals
+        document.getElementById('generateSlipBtn').addEventListener('click', () => {
+            document.getElementById('salarySlipModal').classList.remove('hidden');
+            document.getElementById('salarySlipForm').reset();
+            // Remove any editing flag
+            delete document.getElementById('salarySlipForm').dataset.editing;
+        });
+
+        document.getElementById('addExpenseBtn').addEventListener('click', () => {
+            document.getElementById('expenseModal').classList.remove('hidden');
+            document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
+        });
+
+        document.getElementById('closeSalaryModal').addEventListener('click', () => {
+            document.getElementById('salarySlipModal').classList.add('hidden');
+        });
+
+        document.getElementById('closeExpenseModal').addEventListener('click', () => {
+            document.getElementById('expenseModal').classList.add('hidden');
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            currentUser = null;
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('authForm').reset();
+            document.getElementById('signupFields').classList.add('hidden');
+            document.getElementById('loginTab').click();
+        });
+
+        // Initialize first nav item as active
+        document.querySelector('.nav-item').classList.add('bg-blue-50', 'text-blue-600');
+    </script>
+</body>
+</html>
