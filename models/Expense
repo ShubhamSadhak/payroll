@@ -1,120 +1,37 @@
-const express = require('express');
-const router = express.Router();
-const { auth, adminAuth } = require('../middleware/auth');
-const { body, validationResult } = require('express-validator');
-const Expense = require('../models/Expense');
-const User = require('../models/User');
+const mongoose = require('mongoose');
 
-// Get expenses
-router.get('/', auth, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-
-    let expenses;
-    if (user.role === 'admin') {
-      expenses = await Expense.find({}).sort({ createdAt: -1 });
-    } else {
-      expenses = await Expense.find({ employeeId: user.employeeId }).sort({ createdAt: -1 });
-    }
-
-    res.json(expenses);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+const expenseSchema = new mongoose.Schema({
+  employeeId: {
+    type: String,
+    required: true,
+    ref: 'User'
+  },
+  date: {
+    type: Date,
+    required: true
+  },
+  category: {
+    type: String,
+    required: true,
+    enum: ['Travel', 'Food', 'Office Supplies', 'Training', 'Other']
+  },
+  description: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  amount: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
   }
+}, {
+  timestamps: true
 });
 
-// Create expense
-router.post('/', [auth], [
-  body('date').isISO8601().withMessage('Valid date is required'),
-  body('category').isIn(['Travel', 'Food', 'Office Supplies', 'Training', 'Other']).withMessage('Valid category is required'),
-  body('description').notEmpty().withMessage('Description is required'),
-  body('amount').isNumeric().withMessage('Amount must be a number')
-], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { date, category, description, amount } = req.body;
-
-  try {
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-
-    const expense = new Expense({
-      employeeId: user.employeeId,
-      date,
-      category,
-      description,
-      amount: parseFloat(amount),
-      status: 'pending'
-    });
-
-    await expense.save();
-    res.json(expense);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
-
-// Approve expense (Admin only)
-router.put('/:id/approve', [auth, adminAuth], async (req, res) => {
-  try {
-    const expense = await Expense.findById(req.params.id);
-    if (!expense) {
-      return res.status(404).json({ msg: 'Expense not found' });
-    }
-
-    expense.status = 'approved';
-    await expense.save();
-    res.json(expense);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
-
-// Reject expense (Admin only)
-router.put('/:id/reject', [auth, adminAuth], async (req, res) => {
-  try {
-    const expense = await Expense.findById(req.params.id);
-    if (!expense) {
-      return res.status(404).json({ msg: 'Expense not found' });
-    }
-
-    expense.status = 'rejected';
-    await expense.save();
-    res.json(expense);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
-
-// Delete expense (Own expense only)
-router.delete('/:id', auth, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const user = await User.findById(userId);
-
-    const expense = await Expense.findById(req.params.id);
-    if (!expense) {
-      return res.status(404).json({ msg: 'Expense not found' });
-    }
-
-    if (expense.employeeId !== user.employeeId) {
-      return res.status(403).json({ msg: 'Access denied' });
-    }
-
-    await Expense.findByIdAndDelete(req.params.id);
-    res.json({ msg: 'Expense deleted' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
-
-module.exports = router;
+module.exports = mongoose.model('Expense', expenseSchema);
